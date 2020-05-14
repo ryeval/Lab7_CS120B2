@@ -15,17 +15,19 @@
 #endif
 
 //haha do arrays start at 0 or 1
-enum States{start, wait, wait2, inc, dec, res} state;
+enum States{start, wait, wait2, wait3, wait4, inc, dec, res} state;
 unsigned char out = 0x00;
 unsigned char btn0 = 0x00;
 unsigned char btn1 = 0x00;
+unsigned char i;
 
-Tick(){
+void Tick(){
 	LCD_ClearScreen();
 	btn0 = ~PINA & 0x01;
 	btn1 = ~PINA & 0x02;
 	switch(state){
 		case start:
+			i = 0;
 			state = res;
 			break;
 		case res:
@@ -61,11 +63,39 @@ Tick(){
 				state = dec;
 			}
 			break;
+		case wait3:
+			if(btn0){
+				i++;
+			}
+			else if((btn1) || (!btn0)){
+				i = 0;
+				state = wait;
+				break;
+			}
+			if(i == 9){
+				i = 0;
+				state = inc;
+			}
+			break;
+		case wait4:
+			if(btn1){
+				i++;
+			}
+			else if((btn0) || !btn1){
+				i = 0;
+				state = wait;
+				break;	
+			}
+			if(i == 9){
+				i = 0;
+				state = dec;
+			}
+			break;	
 		case inc:
-			state = (btn0&&btn1) ? res : wait;
+			state = (btn0&&btn1) ? res : wait3;
 			break;
 		case dec:
-			state = (btn0&&btn1) ? res : wait;
+			state = (btn0&&btn1) ? res : wait4;
 			break;
 	}
 	switch(state){
@@ -77,6 +107,10 @@ Tick(){
 		case wait:
 			break;
 		case wait2:
+			break;
+		case wait3:
+			break;
+		case wait4:
 			break;
 		case inc:
 			if(out == 9){
